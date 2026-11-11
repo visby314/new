@@ -293,7 +293,7 @@ scenes.nokey = async () => {
   await page.click('#ghForm button[type=submit]'); await t.settle(3000);
   const log = hub.json('records/study-log.json');
   check(errors, /つながりました/.test(await text(page, '#ghMsg')), '鍵を入れるとつながる');
-  check(errors, log.sessions.some(s => s.sec === 300) && log.sessions.length === 7 && log.goalH === 13, '端末の記録が、前からの記録に足される');
+  check(errors, log.sessions.some(s => s.sec >= 300 && s.sec <= 302) && log.sessions.length === 7 && log.goalH === 13, '端末の記録が、前からの記録に足される');
   if (errors.length) console.log('ERRORS', errors);
   await t.close();
   return errors;

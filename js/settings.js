@@ -299,6 +299,7 @@ function initMisc(onGh) {
     $('ghMsg').textContent = r.msg; renderMisc();
     if (onGh) onGh(r.ok);
   });
+  $('tokenShow').addEventListener('change', () => { $('token').type = $('tokenShow').checked ? 'text' : 'password'; });
   const bind = (id, key) => $(id).addEventListener('change', () => { ui[key] = $(id).checked; saveUI(); renderMisc(); });
   bind('alStart', 'alertStart'); bind('alEnd', 'alertEnd'); bind('alSound', 'alertSound');
   $('alPerm').addEventListener('click', async () => { unlockAudio(); const p = await notify.askPermission(); $('alMsg').textContent = p === 'granted' ? '通知を許可しました。' : ''; renderMisc(); });

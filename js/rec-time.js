@@ -65,7 +65,7 @@ function chartHTML(days, n) {
   const lab = keys.map((k, i) => { const show = n <= 7 || i % 5 === (n - 1) % 5; return show ? `<text x="${(L + i * bw + bw / 2).toFixed(1)}" y="${H - B + 14}" class="ax" text-anchor="middle">${n <= 7 ? weekday(k) : +k.slice(8)}</text>` : ''; }).join('');
   const gl = goal ? `<line x1="${L}" x2="${W - R}" y1="${ys(goal)}" y2="${ys(goal)}" class="tgt"/><text x="${W - R}" y="${ys(goal) - 4}" class="tgtl" text-anchor="end">目標 ${fmtH(goal)}時間</text>` : '';
   const legend = db.study.subjects.filter(s => used.has(s.id));
-  return {tot, html: `<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div><b>${dur(tot)}</b><span>直近${n}日の合計</span></div><div><b>${dur(Math.round(tot / n))}</b><span>1日の平均</span></div><div><b>${goal ? hit : studied}<small>日</small></b><span>${goal ? `目標 ${dur(goal)} に届いた日` : '勉強した日'}</span></div></div>
+  return {tot, html: `<div class="kpis" style="grid-template-columns:repeat(3,1fr)"><div><b>${fmtH(tot)}<small>時間</small></b><span>直近${n}日の合計</span></div><div><b>${fmtH(tot / n)}<small>時間</small></b><span>1日の平均</span></div><div><b>${goal ? hit : studied}<small>日</small></b><span>${goal ? `目標 ${dur(goal)} に届いた日` : '勉強した日'}</span></div></div>
     <svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="直近${n}日の日ごとの勉強時間">${grid}${bars}${gl}${lab}</svg>
     ${legend.length ? `<div class="legend">${legend.map(s => `<span>${dotHTML(s.id)}${esc(s.name)}</span>`).join('')}</div>` : ''}
     <p class="note">縦軸は時間。${n <= 7 ? '横は曜日' : '横は日付'}で、右端が今日です。その前の${n}日（${dur(prevTot)}）より ${diff >= 0 ? dur(diff) + ' 多い' : dur(-diff) + ' 少ない'}。</p>`, keys};
@@ -91,7 +91,7 @@ function slotsHTML() {
     done += xs.filter(r => (r.x.st === 'done' || r.x.st === 'run') && r.s.endMs <= now).length; ended += end;
     rows += `<li><span class="pn">${md(d)}<small style="margin-left:4px;color:var(--muted)">${weekday(d)}</small></span><span class="daystrip">${xs.map(r => `<i data-st="${r.x.st}" style="--w:${r.s.full}" title="${hm(r.s.startMs)}–${hm(r.s.endMs)} ${esc(subjName(r.s.subjectId))}"></i>`).join('')}</span><span class="pv">${ok}<small>/ ${slots.length}コマ</small></span></li>`;
   }
-  return `<div class="chead"><span>時間割のでき具合（直近7日）</span><span class="num">${ended ? Math.round(done * 100 / ended) : 0}<small>%（終わった${ended}コマのうち）</small></span></div>
+  return `<div class="chead"><span>時間割のでき具合</span><span class="num">${ended ? Math.round(done * 100 / ended) : 0}<small>%・直近7日の${ended}コマ中</small></span></div>
     <ul class="plist">${rows}</ul>
     <div class="legend"><span><i class="dot" style="--c:var(--accent)"></i>やった・計った</span><span><i class="dot" style="--c:#e3bcbc"></i>やってない</span><span><i class="dot" style="--c:var(--warn)"></i>答えていない</span><span><i class="dot" style="--c:var(--rule-soft)"></i>これから</span></div>`;
 }
