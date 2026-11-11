@@ -1,5 +1,5 @@
 // アプリの画面だけを端末に保存する（GitHubへの送信は保存しない）。電波があるときは、いつも新しいものを取りに行く
-const CACHE = 'new-app-v1';
+const CACHE = 'new-app-v2';
 const FILES = ['./', './index.html', './css/app.css', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png',
   './js/main.js', './js/util.js', './js/merge.js', './js/tt.js', './js/calc.js', './js/store.js', './js/dom.js', './js/shared.js',
   './js/today.js', './js/send.js', './js/rec-time.js', './js/rec-scores.js', './js/rec-kouza.js', './js/settings.js', './js/notify.js', './data/kouza-data.js'];
