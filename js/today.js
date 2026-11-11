@@ -223,7 +223,7 @@ function renderSlots() {
   const rows = slotsFor(db.tt, today).map(s => ({s, x: slotState(db.tt, sessions, today, s, now)}));
   if (rows.length) {
     const ok = rows.filter(r => r.x.st === 'done' || r.x.st === 'run').length, ended = rows.filter(r => r.s.endMs <= now).length;
-    html += `<div class="chead"><span>今日のコマ</span><span class="num">${ok}<small>/ ${rows.length}コマ${ended ? `（終わった ${ended}コマのうち）` : ''}</small></span></div>
+    html += `<div class="chead"><span>今日のコマ</span><span class="num">${ok}<small>コマやった${ended ? `（終わった${ended}コマのうち）` : ''}・全${rows.length}コマ</small></span></div>
       <div class="daystrip" role="img" aria-label="今日のコマの進み具合">${rows.map(r => `<i data-st="${r.x.st}" style="--w:${r.s.full}" title="${slotLine(r.s)} ${esc(subjName(r.s.subjectId))}"></i>`).join('')}</div>
       <ul class="slots">${rows.map(r => slotRow(today, r.s, r.x)).join('')}</ul>`;
   } else {
