@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>勉強</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="勉強">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <h1 id="title" data-en="TODAY">今日</h1>
+    <div class="sync" id="sync" role="status"></div>
+  </header>
+
+  <p class="banner" id="setupBanner" hidden>保存先がまだ設定されていません。それまでの記録はこの端末に保存され、設定が済むと送られます。<br><button type="button" class="tool" data-goto="settings:gh">設定で鍵を入れる</button></p>
+
+  <!-- ================= 今日 ================= -->
+  <section class="view" id="view-today">
+    <div class="tdsum" id="tdSum"></div>
+
+    <div class="card" id="tdRun">
+      <div class="minis wide" id="tdMode" role="radiogroup" aria-label="計り方">
+        <button type="button" class="mini" role="radio" data-mode="tt" aria-checked="true">時間割</button>
+        <button type="button" class="mini" role="radio" data-mode="free" aria-checked="false">普通に計る</button>
+      </div>
+      <div id="tdSlot"></div>
+      <div id="tdFree" class="view" style="gap:14px" hidden>
+        <div class="field"><span class="flabel">科目</span><div class="chips" id="subjChips" role="radiogroup" aria-label="科目"></div></div>
+        <div class="field">
+          <span class="flabel">計り方</span>
+          <div class="minis" id="runModes" role="radiogroup" aria-label="ストップウォッチかタイマーか"><button type="button" class="mini" role="radio" data-rmode="sw" aria-checked="true">ストップウォッチ</button><button type="button" class="mini" role="radio" data-rmode="timer" aria-checked="false">タイマー</button></div>
+        </div>
+        <div class="field" id="timerSet" hidden>
+          <span class="flabel">タイマーの長さ</span>
+          <div class="chips" id="presets"></div>
+          <div class="minrow"><input id="timerMin" type="number" inputmode="numeric" min="1" max="600" aria-label="タイマーの分"><span>分</span></div>
+        </div>
+      </div>
+      <div class="clock" id="clock" data-state="idle" aria-live="off">
+        <div class="clabel" id="clockLabel">経過</div>
+        <div class="cbig" id="clockBig">0:00</div>
+        <div class="csub" id="clockSub"></div>
+        <div class="cbar" id="clockBar" hidden><i id="clockFill"></i></div>
+      </div>
+      <div class="field" id="memoField"><label class="flabel" for="runMemo">何をやった？（記録に残ります）</label><input id="runMemo" type="text" autocomplete="off" placeholder="例：河野塾 数B 演習2-4〜2-8"></div>
+      <div class="btns" id="runBtns"></div>
+      <label class="check" id="awakeRow" hidden><input type="checkbox" id="awake"> 計っている間は画面を消さない</label>
+      <p class="msg" id="runMsg" role="status"></p>
+    </div>
+
+    <div class="card" id="tdSlots" hidden></div>
+    <div class="card" id="tdBooks"></div>
+    <div class="card" id="tdKouza"></div>
+  </section>
+
+  <!-- ================= 送る ================= -->
+  <section class="view" id="view-send" hidden>
+    <form id="sendForm" class="card" novalidate>
+      <p class="note">間違えた問題を受け箱（study-inbox）に送ります。Claudeが写真を読んでAnkiのカードにするので、問題の写真は必ず入れてください。<span id="inboxCount"></span></p>
+      <div class="field"><span class="flabel">問題の写真 <em class="req">必須</em></span><label class="pick" for="ph-problem">写真を撮る・選ぶ</label><input id="ph-problem" type="file" accept="image/*" multiple data-kind="problem" hidden><div class="thumbs" id="th-problem"></div></div>
+      <div class="field"><span class="flabel">自分の解答の写真</span><label class="pick sub" for="ph-mine">写真を撮る・選ぶ</label><input id="ph-mine" type="file" accept="image/*" multiple data-kind="mine" hidden><div class="thumbs" id="th-mine"></div></div>
+      <div class="field"><span class="flabel">模範解答の写真</span><label class="pick sub" for="ph-answer">写真を撮る・選ぶ</label><input id="ph-answer" type="file" accept="image/*" multiple data-kind="answer" hidden><div class="thumbs" id="th-answer"></div></div>
+      <div class="field"><span class="flabel">科目</span><div class="chips" id="sendSubj" role="radiogroup" aria-label="科目"></div></div>
+      <div class="field"><label class="flabel" for="sendSource">出典</label><input id="sendSource" type="text" list="sourceList" placeholder="例：河野塾 数A 演習1-3" autocomplete="off"><datalist id="sourceList"></datalist></div>
+      <div class="field"><span class="flabel">間違えた原因（いくつでも）</span><div class="chips" id="sendReasons" aria-label="間違えた原因"></div></div>
+      <div class="field"><label class="flabel" for="sendMemo">メモ</label><textarea id="sendMemo" rows="3" placeholder="例：nが偶数のときの場合分けを忘れた"></textarea></div>
+      <button type="submit" class="primary" id="sendBtn">受け箱に送る</button>
+      <p class="msg" id="sendMsg" role="status"></p>
+    </form>
+    <div class="card" id="sentCard">
+      <div class="chead"><span>送った問題</span><button type="button" class="tool" id="retryBtn" hidden>まだ送れていない分を送る</button></div>
+      <p class="note" id="queueNote"></p>
+      <ol class="items" id="sentItems"></ol>
+    </div>
+  </section>
+
+  <!-- ================= 記録 ================= -->
+  <section class="view" id="view-record" hidden>
+    <div class="minis wide" id="recTabs" role="tablist" aria-label="記録の種類">
+      <button type="button" class="mini" role="tab" data-rec="time" aria-selected="true">勉強時間</button>
+      <button type="button" class="mini" role="tab" data-rec="scores" aria-selected="false">過去問</button>
+      <button type="button" class="mini" role="tab" data-rec="kouza" aria-selected="false">講座</button>
+    </div>
+
+    <!-- 勉強時間 -->
+    <div class="view" id="rec-time">
+      <div class="card" id="stPlan"></div>
+      <div class="card" id="stHeat"></div>
+      <div class="card">
+        <div class="chead"><span>日ごとの勉強時間</span><div class="minis" id="rangeTabs" role="tablist" aria-label="期間"><button type="button" class="mini" role="tab" data-range="7" aria-selected="true">7日</button><button type="button" class="mini" role="tab" data-range="30" aria-selected="false">30日</button></div></div>
+        <div id="stChart"></div>
+      </div>
+      <div class="card" id="stSubj"></div>
+      <div class="card" id="stSlots"></div>
+      <div class="card" id="stLogCard">
+        <div class="chead"><span>記録の一覧</span></div>
+        <details class="fold" id="manualBox">
+          <summary id="manualTitle">あとから記録を足す</summary>
+          <form id="manualForm" class="body" novalidate>
+            <div class="field"><label class="flabel" for="mSubj">科目</label><select id="mSubj"></select></div>
+            <div class="row3">
+              <div class="field"><label class="flabel" for="mDate">日付</label><input id="mDate" type="date"></div>
+              <div class="field"><label class="flabel" for="mTime">始めた時刻</label><input id="mTime" type="time"></div>
+              <div class="field"><label class="flabel" for="mMin">分</label><input id="mMin" type="number" inputmode="numeric" min="1" max="1440" placeholder="例：90"></div>
+            </div>
+            <div class="field"><label class="flabel" for="mMemo">メモ</label><input id="mMemo" type="text" autocomplete="off"></div>
+            <div class="tools"><button type="submit" class="primary" id="mSave">足す</button><button type="button" class="tool" id="mCancel" hidden>直すのをやめる</button></div>
+            <p class="msg" id="mMsg" role="status"></p>
+          </form>
+        </details>
+        <div id="logBody"></div>
+        <button type="button" class="tool" id="moreBtn" hidden>もっと前を見る</button>
+      </div>
+    </div>
+
+    <!-- 過去問 -->
+    <div class="view" id="rec-scores" hidden>
+      <details class="fold" id="scAddBox">
+        <summary id="scAddTitle">過去問を記録する</summary>
+        <form id="scForm" class="body" novalidate>
+          <div class="field"><span class="flabel">試験</span><div class="chips" id="examChips" role="radiogroup" aria-label="試験"></div></div>
+          <div class="field"><span class="flabel">科目</span><div class="chips" id="exSubjChips" role="radiogroup" aria-label="科目"></div></div>
+          <div class="row2">
+            <div class="field"><label class="flabel" for="yearPick">年度・回</label>
+              <div class="lpick"><select id="kindPick" aria-label="種類" hidden></select><select id="yearPick"></select></div>
+              <input id="yearFree" type="text" placeholder="例：2003年度 / 東大実戦模試 第1回" autocomplete="off" aria-label="年度・回の名前" hidden></div>
+            <div class="field"><label class="flabel" for="scDate">解いた日</label><input id="scDate" type="date"></div>
+          </div>
+          <div class="field">
+            <span class="flabel">大問ごとの点数 <span class="tag warn" id="provNote" hidden>満点は仮の値。設定で直せます</span></span>
+            <div class="tmbar" id="tmBar"></div>
+            <div class="parts" id="parts"></div>
+            <div class="total"><span>合計</span><b id="sumNow">0</b><span id="sumMax">/ 0</span><span class="vs" id="sumVs"></span></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label class="flabel" for="scMinutes">かかった時間（分）</label><input id="scMinutes" type="number" inputmode="numeric" min="0" placeholder="例：150"></div>
+            <div class="field"><span class="flabel">回数</span><p class="note" id="attemptNote">はじめて</p></div>
+          </div>
+          <div class="field"><label class="flabel" for="scMemo">メモ</label><textarea id="scMemo" rows="2" placeholder="例：第3問の(2)で場合分けを落とした"></textarea></div>
+          <div class="tools"><button type="submit" class="primary" id="scSave">記録する</button><button type="button" class="tool" id="scCancel" hidden>直すのをやめる</button></div>
+          <p class="msg" id="scMsg" role="status"></p>
+        </form>
+      </details>
+      <div class="filters">
+        <select id="scExam" aria-label="試験"></select>
+        <select id="scSubj" aria-label="科目"></select>
+      </div>
+      <div class="card" id="scTrend"></div>
+      <div class="card" id="scParts" hidden></div>
+      <div class="card" id="scTodai" hidden></div>
+      <div class="card" id="scGrid"></div>
+      <div class="card">
+        <div class="chead"><span>記録の一覧</span><label class="check"><input type="checkbox" id="scAllSubj"> 全科目</label></div>
+        <div id="scList"></div>
+      </div>
+    </div>
+
+    <!-- 講座 -->
+    <div class="view" id="rec-kouza" hidden>
+      <div class="card"><div class="legend"><span><i class="dot" style="--c:var(--c1)"></i>視聴</span><span><i class="dot" style="--c:var(--c2)"></i>演習（自力で解いた）</span><span><i class="dot" style="--c:var(--c3)"></i>復習（解き直した）</span></div><div class="ovs" id="kzOverview"></div></div>
+      <nav class="ktabs" id="kzTabs" role="tablist" aria-label="講座"></nav>
+      <div class="toolbar">
+        <label for="kzFilter">表示
+          <select id="kzFilter"><option value="0">すべて</option><option value="1">視聴がまだ</option><option value="2">演習がまだ</option><option value="4">復習がまだ</option></select>
+        </label>
+        <div class="tools"><button class="tool" id="kzOpenAll" type="button">全部ひらく</button><button class="tool" id="kzCloseAll" type="button">全部とじる</button></div>
+      </div>
+      <div id="kzCourse"></div>
+      <p class="note">番号は河野塾の動画ファイル名の先頭番号と同じです。マナビスの講座名はファイル名（例：ハイレベル化学12）に合わせています。</p>
+    </div>
+  </section>
+
+  <!-- ================= 設定 ================= -->
+  <section class="view" id="view-settings" hidden>
+    <div>
+      <details class="fold" id="set-gh">
+        <summary>保存先（GitHub の鍵）<small id="ghState"></small></summary>
+        <form id="ghForm" class="body" novalidate>
+          <p class="note">保存先は GitHub の非公開リポジトリ study-inbox です。前のアプリと同じ場所・同じ形で保存するので、前のアプリと並べて使えます。鍵はこの端末の中だけに保存されます。</p>
+          <div class="field"><label class="flabel" for="owner">ユーザー名</label><input id="owner" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="visby314"></div>
+          <div class="field"><label class="flabel" for="repo">リポジトリ名</label><input id="repo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="study-inbox"></div>
+          <div class="field"><label class="flabel" for="token">鍵（Fine-grained token）</label><input id="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="前のアプリに入れたものと同じ"></div>
+          <button type="submit" class="primary">保存してつながるか確かめる</button>
+          <p class="msg" id="ghMsg" role="status"></p>
+        </form>
+      </details>
+
+      <details class="fold" id="set-tt">
+        <summary>時間割<small id="ttState"></small></summary>
+        <div class="body" id="ttEditor"></div>
+      </details>
+
+      <details class="fold" id="set-alert">
+        <summary>知らせ（コマの始まりと終わり）<small id="alertState"></small></summary>
+        <div class="body">
+          <label class="check"><input type="checkbox" id="alStart"> コマが始まる時刻に知らせる</label>
+          <label class="check"><input type="checkbox" id="alEnd"> コマが終わる時刻に知らせる</label>
+          <label class="check"><input type="checkbox" id="alSound"> 音も鳴らす</label>
+          <div class="tools"><button type="button" class="tool" id="alPerm">通知を許可する</button><button type="button" class="tool" id="alTest">試しに知らせる</button></div>
+          <p class="msg" id="alMsg" role="status"></p>
+          <p class="note">このアプリが知らせを出せるのは、アプリを開いている間だけです（PCのブラウザなら、タブを開いたままにしておけば裏にあっても出ます）。iPhone でアプリを閉じている間も知らせてほしいときは、下のボタンで時間割をカレンダーに入れてください。カレンダーの通知として、コマの始まりに鳴ります。</p>
+          <div class="tools"><button type="button" class="tool" id="icsBtn">時間割をカレンダーに入れる（.ics）</button></div>
+          <p class="msg" id="icsMsg" role="status"></p>
+        </div>
+      </details>
+
+      <details class="fold" id="set-books">
+        <summary>教材ノルマ<small id="bookState"></small></summary>
+        <div class="body">
+          <form id="bookForm" class="view" style="gap:12px" novalidate>
+            <div class="field"><label class="flabel" for="bName" id="bookTitle">教材を足す</label><input id="bName" type="text" autocomplete="off" placeholder="例：ハイレベル数学の完全攻略"></div>
+            <div class="row2">
+              <div class="field"><label class="flabel" for="bSubj">科目</label><select id="bSubj"></select></div>
+              <div class="field"><label class="flabel" for="bUnit">数える単位</label><select id="bUnit"></select></div>
+            </div>
+            <div class="row3">
+              <div class="field"><label class="flabel" for="bTotal">全部の量</label><input id="bTotal" type="number" inputmode="numeric" min="1" placeholder="例：120"></div>
+              <div class="field"><label class="flabel" for="bDone">もう済んだ量</label><input id="bDone" type="number" inputmode="numeric" min="0" placeholder="0"></div>
+              <div class="field"><label class="flabel" for="bDeadline">締め切り</label><input id="bDeadline" type="date"></div>
+            </div>
+            <div class="tools"><button type="submit" class="primary" id="bSave">足す</button><button type="button" class="tool" id="bCancel" hidden>直すのをやめる</button><button type="button" class="tool danger" id="bDel" hidden>この教材を消す</button></div>
+            <p class="msg" id="bMsg" role="status"></p>
+          </form>
+          <p class="note">締め切りの日まで、残りの量を毎日同じだけ進めるとしたときの量が「今日のノルマ」になります。朝4時に切り替わります。</p>
+          <div id="bookList"></div>
+        </div>
+      </details>
+
+      <details class="fold" id="set-goal">
+        <summary>目標と科目<small id="goalState"></small></summary>
+        <div class="body">
+          <div class="field">
+            <label class="flabel" for="goalH">1日の目標（時間）</label>
+            <input id="goalH" type="number" inputmode="decimal" min="0" max="24" step="0.5">
+            <p class="note">日付の区切りは朝4時です。夜中の1時に勉強した分は、前の日に入ります。</p>
+          </div>
+          <div class="row2">
+            <div class="field"><label class="flabel" for="planStart">数え始める日</label><input id="planStart" type="date"></div>
+            <div class="field"><label class="flabel" for="planEnd">締め切り日</label><input id="planEnd" type="date"></div>
+          </div>
+          <p class="note">数え始める日を空けておくと、最初に記録した日から数えます。締め切り日の前日までを目標の期間にします。</p>
+          <span class="flabel">科目</span>
+          <div id="subjCfg" class="cfgsubs"></div>
+          <button type="button" class="tool" id="addSubj">科目を足す</button>
+          <p class="note">名前を変えても、前の記録はその科目のまま残ります。消した科目の記録も残ります。</p>
+        </div>
+      </details>
+
+      <details class="fold" id="set-exams">
+        <summary>過去問の試験と配点</summary>
+        <div class="body">
+          <div class="field">
+            <label class="flabel" for="kyoteRate">共テの見込み（％）</label>
+            <input id="kyoteRate" type="number" inputmode="decimal" min="0" max="100" step="0.5">
+            <p class="note">東大の合計見込み（550点満点）を出すときに、共テ110点分をこの割合で足します。</p>
+          </div>
+          <div class="field"><label class="flabel" for="cfgExam">試験</label><select id="cfgExam"></select></div>
+          <div id="cfgSubjects" class="cfgsubs"></div>
+          <button type="button" class="tool" id="addExSubj">科目を足す</button>
+          <p class="note">大問は1行に1つ、「名前:満点」の形で書きます。例：第1問:20</p>
+        </div>
+      </details>
+
+      <details class="fold" id="set-kouza">
+        <summary>「今日」に出す講座</summary>
+        <div class="body">
+          <div id="kzShow" class="view" style="gap:8px"></div>
+          <p class="note">チェックを外した講座は「今日」の画面に出ません（記録の講座の表には出ます）。この設定はこの端末だけのものです。</p>
+        </div>
+      </details>
+
+      <details class="fold" id="set-about">
+        <summary>このアプリについて</summary>
+        <div class="body">
+          <p class="note">勉強時間・教材ノルマ・講座チェックリスト・過去問の得点・間違えた問題の受け箱を1つにまとめたアプリです。記録は前のアプリと同じファイル（study-inbox の records/ と inbox/）に入るので、前のアプリで付けた記録もそのまま出ますし、前のアプリに戻っても記録は残ります。時間割だけは新しいファイル（records/timetable.json）に入ります。</p>
+          <div class="tools"><button type="button" class="tool" id="syncNow">いま同期する</button><button type="button" class="tool" id="reloadApp">アプリを最新にする</button></div>
+          <p class="msg" id="aboutMsg" role="status"></p>
+        </div>
+      </details>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar" id="tabbar" role="tablist" aria-label="画面">
+  <button type="button" class="tabbtn" role="tab" data-tab="today" aria-selected="true"><span class="en">Today</span><span class="jp">今日</span><span class="badge" id="badgeToday" hidden></span></button>
+  <button type="button" class="tabbtn" role="tab" data-tab="send" aria-selected="false"><span class="en">Send</span><span class="jp">送る</span><span class="badge" id="badgeSend" hidden></span></button>
+  <button type="button" class="tabbtn" role="tab" data-tab="record" aria-selected="false"><span class="en">Log</span><span class="jp">記録</span></button>
+  <button type="button" class="tabbtn" role="tab" data-tab="settings" aria-selected="false"><span class="en">Set</span><span class="jp">設定</span></button>
+</nav>
+<div class="toast" id="toast" hidden role="status"><span id="toastText"></span><button type="button" id="toastUndo">取り消す</button></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
